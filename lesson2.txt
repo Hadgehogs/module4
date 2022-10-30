@@ -1,0 +1,54 @@
+-- Удаление таблицы department если она есть
+DROP TABLE IF EXISTS department;
+-- Создание таблицы department
+CREATE TABLE department(id Serial PRIMARY KEY, name varchar(250),isProfit bool);
+-- Заполнение данными таблицы department
+INSERT INTO department VALUES 
+(DEFAULT,'Бухгалтерия',false),
+(DEFAULT,'Кредитный отдел',true),
+(DEFAULT,'Отдел продаж',true),
+(DEFAULT,'Правление',false);
+-- Удаление таблицы employee если она есть
+DROP TABLE IF EXISTS employee;
+-- Создание таблицы employee
+CREATE TABLE employee(id Serial PRIMARY KEY, full_name varchar(250), salary int, department_id int);
+-- Заполнение данными таблицы employee
+INSERT INTO employee VALUES 
+(DEFAULT,'Петров Иван',30000,(select id from department where name='Отдел продаж')),
+(DEFAULT,'Иванова Наталья',50000,(select id from department where name='Бухгалтерия')),
+(DEFAULT,'Мирских Петр',100000,(select id from department where name='Правление')),
+(DEFAULT,'Улюкаев Владимир',200000,(select id from department where name='Правление')),
+(DEFAULT,'Заморский Виктор',70000,(select id from department where name='Кредитный отдел'));
+--Вывести на экран всех сотрудников Правления - вывод: все поля employee
+SELECT full_name 
+FROM employee
+INNER JOIN department
+ON employee.department_id=department.id
+WHERE department.name='Правление';
+--Вывести на экран сумму всех зарплат сотрудников - вывод: общая сумма всех зарплат
+SELECT SUM(salary) AS TotalSum
+FROM employee;
+--Вывести на экран только тех сотрудников, которые получают от 10_000 до 100_000 (включительно) - вывод: все поля employee
+SELECT full_name 
+FROM employee
+WHERE employee.salary between 10000 and 100000;
+--Удалить Мирского Петра из таблицы
+DELETE 
+FROM employee
+WHERE employee.full_name='Мирских Петр';
+--Поменять название Кредитного отдела на депозитный и поменять у него статус "приносит прибыль" на нет
+UPDATE department SET name='Депозитный отдел',isProfit=true
+WHERE department.name='Кредитный отдел';
+--Вывести всех сотрудников содержащих "иван" (в независимости от регистра) - вывод: все поля employee
+SELECT full_name 
+FROM employee
+WHERE Lower(employee.full_name) like '%иван%';
+--Вывести среднюю зарплату по отделам - вывод: отдел, средняя зарплата
+SELECT name, CAST(AVG(CASE WHEN salary IS NULL THEN 0 ELSE salary END) AS numeric(15,2))
+FROM department
+LEFT JOIN employee
+ON department.ID=employee.department_ID
+GROUP BY department.ID;
+--Удалить таблицы employee, department
+DROP TABLE IF EXISTS department;
+DROP TABLE IF EXISTS employee;
